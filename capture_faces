@@ -1,0 +1,32 @@
+import cv2
+import os
+import face_recognition
+
+DATASET = "dataset/"
+os.makedirs(DATASET, exist_ok=True)
+
+def capImg(name):
+    cap = cv2.VideoCapture(0)
+    count = 0
+
+    while count < 5:
+        ret, frame = cap.read()
+        if not ret:
+            print("Webcam error!")
+            break
+
+        faces = face_recognition.face_locations(frame)
+        if faces:
+            count += 1
+            cv2.imwrite(os.path.join(DATASET, f"{name}{count}.jpg"), frame)
+            print(f"Saved: {name}{count}.jpg")
+
+        cv2.imshow("Capture", frame)
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    capImg(input("Name: "))
