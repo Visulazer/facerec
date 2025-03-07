@@ -1,0 +1,43 @@
+import cv2
+import numpy as np
+import face_recognition
+import os
+import time
+from attendance import markAtt
+
+if not os.path.exists("encodings.npy") or not os.path.exists("names.npy"):
+    print("No trained model found!")
+    exit()
+
+encodings = np.load("encodings.npy", allow_pickle=True)
+names = np.load("names.npy", allow_pickle=True)
+
+def recog():
+    cap = cv2.VideoCapture(0)
+    start = time.time()
+
+    while time.time() - start < 1.2:
+        ret, frame = cap.read()
+        if not ret:
+            print("Webcam error!")
+            break
+
+        for enc, loc in zip(face_recognition.face_encodings(frame, face_recognition.face_locations(frame)), face_recognition.face_locations(frame)):
+            name = "Unknown"
+            if True in (matches := face_recognition.compare_faces(encodings, enc)):
+                name = names[matches.index(True)]
+                markAtt(name)
+
+            top, right, bottom, left = loc
+            cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
+            cv2.putText(frame, name, (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+
+        cv2.imshow("Recognition", frame)
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    recog()
