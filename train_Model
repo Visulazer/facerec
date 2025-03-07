@@ -1,0 +1,25 @@
+import os
+import numpy as np
+import face_recognition
+
+def train():
+    DATASET = "dataset/"
+    encs, names = [], []
+
+    for file in os.listdir(DATASET):
+        if file.endswith(".jpg"):
+            img = face_recognition.load_image_file(os.path.join(DATASET, file))
+            if (enc := face_recognition.face_encodings(img, face_recognition.face_locations(img, model="cnn"))):
+                encs.append(enc[0])
+                names.append(file.split("_")[0])
+                print(f"Trained: {file}")
+
+    if encs:
+        np.save("encodings.npy", encs)
+        np.save("names.npy", names)
+        print("Training complete.")
+    else:
+        print("No faces found.")
+
+if __name__ == "__main__":
+    train()
